@@ -1,0 +1,19 @@
+<h2>Project Details</h2>
+
+<p><b>Title:</b> {{ project.title }}</p>
+<p><b>Domain:</b> {{ project.domain }}</p>
+<p><b>Duration:</b> {{ project.duration }} weeks</p>
+<p><b>Description:</b> {{ project.description }}</p>
+
+<hr>
+
+<h2>Ranked Candidates</h2>
+
+{% for r in results %}
+<div>
+<h3>{{ r.name }}</h3>
+Final Score: {{ r.final }}% <br>
+<a href="/explanation/{{ r.name }}">View Explanation</a>
+<hr>
+</div>
+{% endfor %}
