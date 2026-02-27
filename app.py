@@ -1,11 +1,13 @@
-from flask import Flask, render_template, request, jsonify
-from flask_cors import CORS
+from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
-CORS(app)
+
+# Temporary storage (hackathon demo)
+candidates = []
+project_data = {}
 
 # ---------------------------
-# Matching Algorithm
+# MATCHING LOGIC
 # ---------------------------
 
 def calculate_match_score(candidate, project):
@@ -14,62 +16,125 @@ def calculate_match_score(candidate, project):
     explanation = []
 
     for skill, weight in project["weights"].items():
-        required_level = project["required_skills"].get(skill, 0)
+        required = project["required_skills"].get(skill, 0)
         candidate_level = candidate["skills"].get(skill, 0)
 
-        if required_level > 0:
-            contribution = (candidate_level / required_level) * weight
+        if required > 0:
+            contribution = (candidate_level / required) * weight
         else:
             contribution = 0
 
         score += contribution
 
-        if candidate_level >= required_level:
-            explanation.append(f"Strong in {skill} ({candidate_level}/{required_level})")
+        if candidate_level >= required:
+            explanation.append(f"Strong in {skill} ({candidate_level}/{required})")
         else:
-            explanation.append(f"Needs improvement in {skill} ({candidate_level}/{required_level})")
+            explanation.append(f"Needs improvement in {skill} ({candidate_level}/{required})")
 
-    normalized_score = round((score / total_weight) * 100, 2)
-    return normalized_score, explanation
+    raw_score = round((score / total_weight) * 100, 2)
+
+    # Fairness
+    boost = 5 if candidate["background"] == "underrepresented" else 0
+    final_score = min(raw_score + boost, 100)
+
+    return raw_score, final_score, boost, explanation
 
 
-def apply_fairness(score, candidate):
-    fairness_boost = 0
-
-    if candidate.get("background") == "underrepresented":
-        fairness_boost = 5
-
-    final_score = min(score + fairness_boost, 100)
-    return final_score, fairness_boost
-
+# ---------------------------
+# ROUTES
+# ---------------------------
 
 @app.route("/")
 def home():
     return render_template("index.html")
 
 
-@app.route("/match", methods=["POST"])
-def match():
-    data = request.json
-    candidates = data["candidates"]
-    project = data["project"]
+@app.route("/student", methods=["GET", "POST"])
+def student():
+    if request.method == "POST":
+        name = request.form["name"]
+        python = int(request.form["python"])
+        ml = int(request.form["ml"])
+        sql = int(request.form["sql"])
+        background = request.form["background"]
+
+        candidates.append({
+            "name": name,
+            "skills": {"Python": python, "ML": ml, "SQL": sql},
+            "background": background
+        })
+
+        return redirect(url_for("home"))
+
+    return render_template("student.html")
+
+
+@app.route("/recruiter", methods=["GET", "POST"])
+def recruiter():
+    global project_data
+
+    if request.method == "POST":
+        project_data = {
+            "title": request.form["title"],
+            "description": request.form["description"],
+            "domain": request.form["domain"],
+            "duration": request.form["duration"],
+            "required_skills": {
+                "Python": int(request.form["python"]),
+                "ML": int(request.form["ml"]),
+                "SQL": int(request.form["sql"])
+            },
+            "weights": {
+                "Python": float(request.form["w_python"]),
+                "ML": float(request.form["w_ml"]),
+                "SQL": float(request.form["w_sql"])
+            }
+        }
+
+        return redirect(url_for("home"))
+
+    return render_template("recruiter.html")
+
+
+@app.route("/dashboard")
+def dashboard():
+    if not project_data:
+        return "Please upload project details first."
+
+    if not candidates:
+        return "No students added yet."
 
     results = []
 
     for candidate in candidates:
-        raw_score, explanation = calculate_match_score(candidate, project)
-        final_score, boost = apply_fairness(raw_score, candidate)
+        raw, final, boost, explanation = calculate_match_score(candidate, project_data)
 
         results.append({
             "name": candidate["name"],
-            "raw_score": raw_score,
-            "final_score": final_score,
-            "fairness_boost": boost,
+            "raw": raw,
+            "final": final,
+            "boost": boost,
             "explanation": explanation
         })
 
-    ranked_results = sorted(results, key=lambda x: x["final_score"], reverse=True)
-    return jsonify(ranked_results)
+    results = sorted(results, key=lambda x: x["final"], reverse=True)
+
+    return render_template("dashboard.html", results=results, project=project_data)
+
+
+@app.route("/explanation/<name>")
+def explanation(name):
+    for candidate in candidates:
+        if candidate["name"] == name:
+            raw, final, boost, explanation = calculate_match_score(candidate, project_data)
+            return render_template("explanation.html",
+                                   name=name,
+                                   raw=raw,
+                                   final=final,
+                                   boost=boost,
+                                   explanation=explanation)
+
+    return "Candidate not found"
 
 
 if __name__ == "__main__":
