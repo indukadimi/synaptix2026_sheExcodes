@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Matches - SkillMatch</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">SkillMatch</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="candidates.html">Candidates</a></li>
+    <li><a href="internships.html">Internships</a></li>
+    <li><a href="matches.html" class="active">Matches</a></li>
+  </ul>
+</nav>
+
+<div class="page-container">
+
+  <h1>Match Results</h1>
+
+  <div class="form-card">
+    <input type="text" id="candidateId" placeholder="Enter Candidate ID (e.g. C001)">
+    <button onclick="findMatches()">Find Matches</button>
+  </div>
+
+  <div id="matchResults" class="card-grid"></div>
+
+</div>
+
+<script>
+
+// --- SAMPLE DATA (same as other pages) ---
+
+const candidates = [
+  {
+    id: "C001",
+    name: "Priya Sharma",
+    skills: [
+      {name:"Python", level:"Advanced"},
+      {name:"Machine Learning", level:"Intermediate"},
+      {name:"SQL", level:"Beginner"}
+    ],
+    projects:["Sentiment Analysis Tool"]
+  }
+];
+
+const internships = [
+  {
+    title: "ML Engineering Intern",
+    skills: [
+      {name:"Python", weight:40},
+      {name:"Machine Learning", weight:30},
+      {name:"SQL", weight:10}
+    ]
+  },
+  {
+    title: "Data Analyst Intern",
+    skills: [
+      {name:"Python", weight:30},
+      {name:"SQL", weight:35}
+    ]
+  }
+];
+
+// --- LEVEL MAP ---
+const levelMap = {
+  "Beginner": 1,
+  "Intermediate": 2,
+  "Advanced": 3
+};
+
+function findMatches(){
+
+  const id = document.getElementById("candidateId").value;
+  const candidate = candidates.find(c => c.id === id);
+
+  if(!candidate){
+    alert("Candidate not found");
+    return;
+  }
+
+  let rankedResults = [];
+
+  internships.forEach(job => {
+
+    let score = 0;
+
+    job.skills.forEach(req => {
+
+      const candidateSkill = candidate.skills.find(s => s.name === req.name);
+
+      if(candidateSkill){
+
+        let candidateLevel = levelMap[candidateSkill.level];
+        let normalized = candidateLevel / 3;
+
+        // Weighted Competency Score
+        score += normalized * req.weight;
+
+        // Project Mapping Bonus
+        candidate.projects.forEach(p => {
+          if(p.toLowerCase().includes(req.name.toLowerCase())){
+            score += 5;
+          }
+        });
+
+      }
+    });
+
+    rankedResults.push({
+      title: job.title,
+      score: Math.min(score, 100).toFixed(1)
+    });
+
+  });
+
+  rankedResults.sort((a,b)=> b.score - a.score);
+
+  displayResults(candidate.name, rankedResults);
+}
+
+function displayResults(name, results){
+
+  const container = document.getElementById("matchResults");
+  container.innerHTML = "";
+
+  results.forEach(r => {
+    container.innerHTML += `
+      <div class="card">
+        <h3>${r.title}</h3>
+        <h2>${r.score}% Match</h2>
+      </div>
+    `;
+  });
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Internships - SkillMatch</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">SkillMatch</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="candidates.html">Candidates</a></li>
+    <li><a href="internships.html" class="active">Internships</a></li>
+    <li><a href="matches.html">Matches</a></li>
+  </ul>
+</nav>
+
+<div class="page-container">
+
+  <h1>Available Positions & Skill Requirements</h1>
+
+  <!-- ADD INTERNSHIP FORM -->
+  <div class="form-card">
+    <h2>Add Internship Opportunity</h2>
+
+    <input type="text" id="title" placeholder="Internship Title">
+    <input type="text" id="company" placeholder="Company Name">
+    <input type="text" id="description" placeholder="Short Description">
+
+    <input type="text" id="skills" 
+    placeholder="Skills with weight (e.g. Python-40, ML-30, SQL-10)">
+
+    <button onclick="addInternship()">Add Internship</button>
+  </div>
+
+  <!-- INTERNSHIP CARDS -->
+  <div id="internshipList" class="card-grid"></div>
+
+</div>
+
+<script>
+
+let internships = [
+  {
+    title: "ML Engineering Intern",
+    company: "CloudNova",
+    description: "Work on building and deploying ML models.",
+    skills: [
+      {name:"Python", weight:40},
+      {name:"Machine Learning", weight:30},
+      {name:"SQL", weight:10}
+    ]
+  },
+
+  {
+    title: "Frontend Developer Intern",
+    company: "TechSpark",
+    description: "Build responsive web apps using React and TypeScript.",
+    skills: [
+      {name:"React", weight:40},
+      {name:"TypeScript", weight:25},
+      {name:"Node.js", weight:15}
+    ]
+  },
+
+  {
+    title: "Data Analyst Intern",
+    company: "DataBridge",
+    description: "Analyze datasets and create dashboards.",
+    skills: [
+      {name:"Python", weight:30},
+      {name:"SQL", weight:35},
+      {name:"Machine Learning", weight:15}
+    ]
+  }
+];
+
+function renderInternships(){
+  const container = document.getElementById("internshipList");
+  container.innerHTML = "";
+
+  internships.forEach(job => {
+    container.innerHTML += `
+      <div class="card">
+        <h2>${job.title}</h2>
+        <p><strong>${job.company}</strong></p>
+        <p>${job.description}</p>
+
+        <h4>Required Skills & Weights</h4>
+
+        ${job.skills.map(skill => `
+          <div class="skill-row">
+            <span>${skill.name}</span>
+            <span>${skill.weight}%</span>
+          </div>
+          <div class="bar-container">
+            <div class="bar" style="width:${skill.weight}%"></div>
+          </div>
+        `).join("")}
+      </div>
+    `;
+  });
+}
+
+function addInternship(){
+
+  const title = document.getElementById("title").value;
+  const company = document.getElementById("company").value;
+  const description = document.getElementById("description").value;
+  const skillsInput = document.getElementById("skills").value;
+
+  if(!title || !company || !skillsInput){
+    alert("Please fill required fields");
+    return;
+  }
+
+  // Convert skills string into structured array
+  let skillsArray = skillsInput.split(",").map(item => {
+    let parts = item.split("-");
+    return {
+      name: parts[0].trim(),
+      weight: parseInt(parts[1]) || 0
+    };
+  });
+
+  internships.push({
+    title,
+    company,
+    description,
+    skills: skillsArray
+  });
+
+  renderInternships();
+
+  document.querySelectorAll(".form-card input").forEach(i => i.value = "");
+}
+
+renderInternships();
+
+</script>
+
+</body>
+</html>

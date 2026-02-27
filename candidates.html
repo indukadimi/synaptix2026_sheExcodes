@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Candidates - SkillMatch</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="logo">SkillMatch</div>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="candidates.html" class="active">Candidates</a></li>
+    <li><a href="internships.html">Internships</a></li>
+    <li><a href="matches.html">Matches</a></li>
+  </ul>
+</nav>
+
+<div class="page-container">
+
+  <h1>Registered Students & Skill Profiles</h1>
+
+  <!-- REGISTER FORM -->
+  <div class="form-card">
+    <h2>Register New Candidate</h2>
+
+    <input type="text" id="name" placeholder="Full Name">
+    <input type="text" id="degree" placeholder="Degree">
+    <select id="level">
+      <option value="">Overall Level</option>
+      <option>Beginner</option>
+      <option>Intermediate</option>
+      <option>Advanced</option>
+    </select>
+
+    <input type="text" id="skills" placeholder="Skills (e.g. Python-Advanced, SQL-Beginner)">
+    <input type="text" id="certifications" placeholder="Certifications (comma separated)">
+    <input type="text" id="projects" placeholder="Projects (comma separated)">
+    <input type="text" id="experience" placeholder="Experience">
+
+    <button onclick="addCandidate()">Register Candidate</button>
+  </div>
+
+  <!-- CANDIDATE CARDS -->
+  <div id="candidateList" class="card-grid"></div>
+
+</div>
+
+<script>
+let candidates = [
+  {
+    id: "C001",
+    name: "Priya Sharma",
+    degree: "B.Tech Computer Science",
+    level: "Advanced",
+    skills: [
+      {name:"Python", level:"Advanced"},
+      {name:"Machine Learning", level:"Intermediate"},
+      {name:"SQL", level:"Beginner"},
+      {name:"React", level:"Intermediate"}
+    ],
+    certifications: [
+      "AWS Cloud Practitioner",
+      "Google ML Certificate"
+    ],
+    projects: [
+      "Sentiment Analysis Tool",
+      "E-commerce Dashboard"
+    ],
+    experience: "6 months internship at TCS"
+  },
+
+  {
+    id: "C002",
+    name: "Rahul Verma",
+    degree: "BCA",
+    level: "Intermediate",
+    skills: [
+      {name:"Java", level:"Advanced"},
+      {name:"Python", level:"Intermediate"},
+      {name:"SQL", level:"Advanced"},
+      {name:"React", level:"Beginner"}
+    ],
+    certifications: [
+      "Oracle Java SE"
+    ],
+    projects: [
+      "Banking Management System"
+    ],
+    experience: "1 year freelance experience"
+  },
+
+  {
+    id: "C003",
+    name: "Ananya Patel",
+    degree: "B.Tech IT",
+    level: "Intermediate",
+    skills: [
+      {name:"React", level:"Advanced"},
+      {name:"TypeScript", level:"Advanced"},
+      {name:"Node.js", level:"Intermediate"},
+      {name:"Python", level:"Beginner"}
+    ],
+    certifications: [
+      "Frontend Developer Certification"
+    ],
+    projects: [
+      "Portfolio Website",
+      "Task Management App"
+    ],
+    experience: "8 months internship"
+  }
+];
+
+function renderCandidates(){
+  const container = document.getElementById("candidateList");
+  container.innerHTML = "";
+
+  candidates.forEach(c => {
+    container.innerHTML += `
+      <div class="card">
+        <h3>${c.name}(${c.id})</h3>
+        <p><strong>${c.degree}</strong> • ${c.level}</p>
+
+        <h4>Skills</h4>
+        <div class="skill-tags">
+          ${c.skills.map(skill =>
+            `<span class="tag">${skill.name} (${skill.level})</span>`
+          ).join("")}
+        </div>
+
+        <h4>Certifications</h4>
+        <ul>
+          ${c.certifications.map(cert => `<li>${cert}</li>`).join("")}
+        </ul>
+
+        <h4>Projects</h4>
+        <ul>
+          ${c.projects.map(project => `<li>${project}</li>`).join("")}
+        </ul>
+
+        <p class="experience"><strong>Experience:</strong> ${c.experience}</p>
+      </div>
+    `;
+  });
+}
+
+function addCandidate(){
+
+  const name = document.getElementById("name").value;
+  const degree = document.getElementById("degree").value;
+  const level = document.getElementById("level").value;
+  const skillsInput = document.getElementById("skills").value;
+  const certificationsInput = document.getElementById("certifications").value;
+  const projectsInput = document.getElementById("projects").value;
+  const experience = document.getElementById("experience").value;
+
+  if(!name || !degree || !level || !skillsInput){
+    alert("Please fill required fields");
+    return;
+  }
+
+  // Convert skills into structured array
+  let skillsArray = skillsInput.split(",").map(item => {
+    let parts = item.split("-");
+    return {name: parts[0].trim(), level: parts[1]?.trim() || "Beginner"};
+  });
+
+  let certificationsArray = certificationsInput
+      ? certificationsInput.split(",").map(c => c.trim())
+      : [];
+
+  let projectsArray = projectsInput
+      ? projectsInput.split(",").map(p => p.trim())
+      : [];
+
+  candidates.push({
+    name,
+    degree,
+    level,
+    skills: skillsArray,
+    certifications: certificationsArray,
+    projects: projectsArray,
+    experience
+  });
+
+  renderCandidates();
+
+  document.querySelectorAll(".form-card input").forEach(i => i.value = "");
+  document.getElementById("level").value = "";
+}
+
+renderCandidates();
+
+</script>
+
+</body>
+</html>
