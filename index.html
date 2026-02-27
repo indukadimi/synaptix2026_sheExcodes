@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SkillMatch AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<h1>SkillMatch AI - Internship Matching Platform</h1>
+
+<button onclick="runMatch()">Run Matching</button>
+
+<div id="results"></div>
+
+<script>
+async function runMatch() {
+
+    const data = {
+        project: {
+            required_skills: {
+                Python: 5,
+                ML: 4,
+                SQL: 3
+            },
+            weights: {
+                Python: 0.4,
+                ML: 0.35,
+                SQL: 0.25
+            }
+        },
+        candidates: [
+            {
+                name: "Indu",
+                skills: { Python: 4, ML: 3, SQL: 2 },
+                background: "underrepresented"
+            },
+            {
+                name: "Rahul",
+                skills: { Python: 5, ML: 4, SQL: 3 },
+                background: "general"
+            },
+            {
+                name: "Sneha",
+                skills: { Python: 3, ML: 2, SQL: 4 },
+                background: "general"
+            }
+        ]
+    };
+
+    const response = await fetch("/match", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+    displayResults(result);
+}
+
+function displayResults(results) {
+    const container = document.getElementById("results");
+    container.innerHTML = "";
+
+    results.forEach(candidate => {
+        container.innerHTML += `
+            <div class="card">
+                <h2>${candidate.name}</h2>
+                <p><b>Final Score:</b> ${candidate.final_score}%</p>
+                <p><b>Raw Score:</b> ${candidate.raw_score}%</p>
+                <p><b>Fairness Boost:</b> ${candidate.fairness_boost}%</p>
+                <ul>
+                    ${candidate.explanation.map(e => `<li>${e}</li>`).join("")}
+                </ul>
+            </div>
+        `;
+    });
+}
+</script>
+
+</body>
+</html>
